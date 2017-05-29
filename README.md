@@ -29,14 +29,14 @@ public class InterceptorConfig extends WebMvcConfigurerAdapter{
 }
 ```
 
-* 如果你想拦截普通用户登陆 使用 @YiBanJwtAuth 注解装饰方法即可
+* 如果你想拦截普通用户登陆 使用 @YiBanJwtAuth 注解装饰该方法即可
 
 ```java
 @YiBanJwtAuth
 public Object doSomeThing(){ ... }
 ```
 
-* 如果你想拦截管理员登陆 使用 @YiBanJwtCommonAdmin 注解装饰方法即可
+* 如果你想拦截管理员登陆 使用 @YiBanJwtCommonAdmin 注解装饰该方法即可
 
 ```java
 @YiBanJwtCommonAdmin
@@ -47,8 +47,8 @@ public Object doSomeThing(){ ... }
 ```yaml
 yibanoauth:
     app:
-        appId: acaec190548725cf
-        appKey: 6b7d82af041da97d586ad8b8d8204225
+        appId: yourappid
+        appKey: yourappsecret
      jwt:
         secret: secret
         expiresSecond: 147800
