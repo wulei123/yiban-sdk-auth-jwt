@@ -14,6 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
 
 /**
  * Created by 武雷 on 2017/5/27.
@@ -27,21 +28,37 @@ public class JwtAuthInterceptor implements HandlerInterceptor{
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler) throws Exception {
         HandlerMethod handlerMethod = (HandlerMethod)handler;
         Method method = handlerMethod.getMethod();
-        Claims userInfo = JwtHandler.jwtParser(httpServletRequest.getHeader("YiBan-JWT"),jwtMessageConfig.getSecret()).getBody();
+        Claims userInfo;
+        String jwtHeader;
         if(!method.isAnnotationPresent(YiBanJwtAuth.class)) {
             return true;
-        }else if(method.isAnnotationPresent(YiBanJwtAuth.class)
-                && (Boolean)userInfo.get("islogin")
-                && System.currentTimeMillis()>=((Long)userInfo.get("expiration"))){
-            return true;
-        }else if(method.isAnnotationPresent(YiBanJwtAuth.class)
-                && (Boolean)userInfo.get("islogin")
-                && System.currentTimeMillis()<((Long)userInfo.get("expiration"))){
-            httpServletResponse.sendError(2,"your token is out of date");
-            return false;
-        }else{
-            httpServletResponse.sendError(1,"you are not login");
-            return false;
+        }else {
+            try{
+                jwtHeader = httpServletRequest.getHeader("YiBan-JWT");
+                if(jwtHeader == null || jwtHeader.length() == 0){
+                    httpServletResponse.sendError(6,"Message : can not get header value from YiBan-JWT");
+                    return false;
+                }
+            }catch (Exception e){
+                httpServletResponse.sendError(6,"Message : can not get header value from YiBan-JWT");
+                return false;
+            }
+            userInfo = JwtHandler.jwtParser(jwtHeader,jwtMessageConfig.getSecret()).getBody();
+            if(method.isAnnotationPresent(YiBanJwtAuth.class)
+                    && (Boolean)userInfo.get("islogin")
+                    && LocalDateTime.now().getSecond()<=((Long)userInfo.get("expiration"))){
+                return true;
+            }else if(method.isAnnotationPresent(YiBanJwtAuth.class)
+                    && (Boolean)userInfo.get("islogin")
+                    && LocalDateTime.now().getSecond()>((Long)userInfo.get("expiration"))){
+                System.out.println(LocalDateTime.now().getSecond());
+                System.out.println((Long)userInfo.get("expiration"));
+                httpServletResponse.sendError(2,"Message : your token is out of date");
+                return false;
+            }else{
+                httpServletResponse.sendError(0,"Message : you are not login");
+                return false;
+            }
         }
     }
 

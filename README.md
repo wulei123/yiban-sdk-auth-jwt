@@ -10,11 +10,37 @@
 
 将此Jar包放入classpath
 
+
+* 配置登陆点
+```java
+//普通用户
+@Autowired
+private AuthService authService
+
+@RequestMapping("/auth")
+public Object toAuth(String vq){
+    Object result = authService.auth(vq,yourAppId,yourAppSecret)
+    return result;
+}
+//你并不需要检查登陆 因为所有被@YiBanJwtAuth 和 @YiBanConmmonAdminAuth修饰的都会被拦截器拦截 
+//并返回错误信息
+
+@Autowired
+private AuthService authService;
+@RequestMapping("/admin/auth")
+public Object toAdminAuth(String vq){
+    YiBanUserInfoTemplate userInfo = (YiBanUserInfoTempalte)YiBanOauthUtil.decodeYiBanVerifyRequest(vq,"acaec190548725cf","6b7d82af041da97d586ad8b8d8204225");
+    /*your code to judge...*/
+    return authService.adminAuth(userInfo,isAdmin)
+}
+```
+
+
 * 配置拦截器(Java)
 
 ```java
 @Configuration
-@ComponentScans({@ComponentScan("io.github.wulei123.yibansdkauthjwt.interceptor"),@ComponentScan("io.github.wulei123.yibansdkauthjwt.config")})
+@ComponentScan("io.github.wulei123.yibansdkauthjwt")
 public class InterceptorConfig extends WebMvcConfigurerAdapter{
 
     @Autowired
@@ -29,6 +55,8 @@ public class InterceptorConfig extends WebMvcConfigurerAdapter{
 }
 ```
 
+
+
 * 如果你想拦截普通用户登陆 使用 @YiBanJwtAuth 注解装饰该方法即可
 
 ```java
@@ -36,10 +64,10 @@ public class InterceptorConfig extends WebMvcConfigurerAdapter{
 public Object doSomeThing(){ ... }
 ```
 
-* 如果你想拦截管理员登陆 使用 @YiBanJwtCommonAdmin 注解装饰该方法即可
+* 如果你想拦截管理员登陆 使用 @YiBanJwtCommonAdminAuth 注解装饰该方法即可
 
 ```java
-@YiBanJwtCommonAdmin
+@YiBanJwtCommonAdminAuth
 public Object doSomeThing(){ ... }
 ```
 
@@ -62,3 +90,14 @@ yibanoauth:
 
 每次向后端发送请求时要在Header中包含键为"YiBan-JWT"
 值为上一步返回的的JWT即可
+
+* 错误码对照表
+
+错误码 | 错误类型
+:---: | :----:
+0 | 没有登陆
+1 | 登陆成功或已登陆却重复认证
+2 | token过期
+3 | 不是管理员
+4 | 未知错误
+6 | Header中不包含YiBan-JWT

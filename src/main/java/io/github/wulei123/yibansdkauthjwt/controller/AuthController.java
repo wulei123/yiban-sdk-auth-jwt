@@ -1,7 +1,7 @@
 package io.github.wulei123.yibansdkauthjwt.controller;
 
 import io.github.wulei123.yibansdkauthjwt.annotations.YiBanJwtAuth;
-import io.github.wulei123.yibansdkauthjwt.annotations.YiBanJwtCommonAdmin;
+import io.github.wulei123.yibansdkauthjwt.annotations.YiBanJwtAdminAuth;
 import io.github.wulei123.yibansdkauthjwt.annotations.YiBanJwtLogout;
 import io.github.wulei123.yibansdkauthjwt.config.JwtMessageConfig;
 import io.github.wulei123.yibansdkauthjwt.config.YiBanOauthConfig;
@@ -31,7 +31,7 @@ public class AuthController{
 
     @RequestMapping("/login")
     public Object login(String vq) {
-        return authService.login(vq,yiBanOauthConfig.getAppId(),yiBanOauthConfig.getAppKey());
+        return authService.auth(vq,yiBanOauthConfig.getAppId(),yiBanOauthConfig.getAppKey());
     }
 
 
@@ -48,7 +48,7 @@ public class AuthController{
 
 
     @RequestMapping("/checkAdmin")
-    @YiBanJwtCommonAdmin
+    @YiBanJwtAdminAuth
     public void checkCommonAdmin() {
 
     }

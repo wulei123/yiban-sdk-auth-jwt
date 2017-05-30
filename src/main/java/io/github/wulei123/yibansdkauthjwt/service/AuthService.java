@@ -1,11 +1,12 @@
 package io.github.wulei123.yibansdkauthjwt.service;
 
+import io.github.wulei123.yibansdkauthjwt.auth.YiBanOauthUtil;
 import io.github.wulei123.yibansdkauthjwt.config.JwtMessageConfig;
 import io.github.wulei123.yibansdkauthjwt.template.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static io.github.wulei123.yibansdkauthjwt.auth.YiBanOauthHandler.decodeYiBanVerifyRequest;
+import static io.github.wulei123.yibansdkauthjwt.auth.YiBanOauthUtil.decodeYiBanVerifyRequest;
 import static io.github.wulei123.yibansdkauthjwt.utils.jwt.JwtHandler.jwtCompact;
 
 /**
@@ -13,32 +14,36 @@ import static io.github.wulei123.yibansdkauthjwt.utils.jwt.JwtHandler.jwtCompact
  */
 @Service
 public class AuthService{
+
     @Autowired
     private JwtMessageTemplate jwtMessage;
     @Autowired
     private JwtMessageConfig jwtMessageConfig;
     private YiBanUserInfoTemplate userInfo;
 
-    public Object login(String verifyRequest,String appId,String appKey){
-        if(checkAuth().getIsLogin()){
-            return new ReturnMessage(1,"You have already login","not login");
-        }
-        String compactedJws = generateJwt(verifyRequest,appId,appKey);
-        return new JwtReturnMessage(compactedJws);
+    public JwtReturnMessage auth(String verifyRequest,String appId,String appKey){
+        String compactedJwt = generateJwt(verifyRequest,appId,appKey);
+        return new JwtReturnMessage(compactedJwt);
     }
 
-    public ReturnMessage logout(){
+    public JwtReturnMessage adminAuth(YiBanUserInfoTemplate userInfo,Boolean isAdmin){
+        jwtMessage.setUserInfo(userInfo,isAdmin);
+        return new JwtReturnMessage(jwtCompact(jwtMessage,jwtMessageConfig.getSecret()));
+    }
+
+    /*public ReturnMessage logout(){
+        JwtMessageTemplate jwtMessage = new JwtMessageTemplate();
         jwtMessage.setIslogin(false);
-        return new ReturnMessage(2,"logout successfully","logout successfully");
-    }
+        return new ReturnMessage(4,"logout successfully","logout successfully");
+    }*/
 
-    public AuthReturnMessage checkAuth() {
+   /* public AuthReturnMessage checkAuth() {
         return new AuthReturnMessage(jwtMessage.getIslogin());
-    }
+    }*/
 
     public String generateJwt(String verifyRequest, String appId, String appKey){
         userInfo = (YiBanUserInfoTemplate)decodeYiBanVerifyRequest(verifyRequest,appId,appKey);
-        jwtMessage.setUserInfo(userInfo);
+        this.jwtMessage.setUserInfo(userInfo);
         return jwtCompact(jwtMessage,jwtMessageConfig.getSecret());
     }
 

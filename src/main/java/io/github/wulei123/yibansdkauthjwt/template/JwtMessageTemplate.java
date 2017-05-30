@@ -2,15 +2,19 @@ package io.github.wulei123.yibansdkauthjwt.template;
 
 
 import io.github.wulei123.yibansdkauthjwt.config.JwtMessageConfig;
-import io.github.wulei123.yibansdkauthjwt.repository.CommonAdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.lang.reflect.Method;
+import java.time.LocalDateTime;
 
 /**
  * Created by 武雷 on 2017/5/25.
  */
 @Component
 public class JwtMessageTemplate {
+
+    private  JwtMessageConfig jwtMessageConfig;
     private Integer userid = -1;
     private String username;
     private String usernick;
@@ -18,12 +22,14 @@ public class JwtMessageTemplate {
     private Boolean islogin = false;
     private String ybhead;
     private Boolean isadmin = false;
-    private long expiration = 0;
+    private Integer expiration = 0;
 
-    public JwtMessageTemplate() {
+    @Autowired
+    public JwtMessageTemplate(JwtMessageConfig jwtMessageConfig) {
+        this.jwtMessageConfig = jwtMessageConfig;
     }
 
-    public JwtMessageTemplate(Integer userid, String username, String usernick, char usersex, Boolean islogin, String ybhead, Boolean isadmin, long expiration) {
+    public JwtMessageTemplate(Integer userid, String username, String usernick, char usersex, Boolean islogin, String ybhead, Boolean isadmin, Integer expiration) {
         this.userid = userid;
         this.username = username;
         this.usernick = usernick;
@@ -34,10 +40,17 @@ public class JwtMessageTemplate {
         this.expiration = expiration;
     }
 
-    @Autowired
-    private  JwtMessageConfig jwtMessageConfig;
-    @Autowired
-    private  CommonAdminRepository commonAdminRepository;
+    public void setUserInfo(YiBanUserInfoTemplate yiBanUserInfo, Boolean isadmin){
+        this.userid = yiBanUserInfo.visit_user.userid;
+        this.username = yiBanUserInfo.visit_user.username;
+        this.usernick = yiBanUserInfo.visit_user.usernick;
+        this.usersex = yiBanUserInfo.visit_user.usersex;
+        this.ybhead = yiBanUserInfo.visit_user.userhead;
+        this.islogin = true;
+        this.expiration = LocalDateTime.now().getSecond() + jwtMessageConfig.getExpiresSecond();
+        this.isadmin = isadmin;
+//        this.isadmin = commonAdminRepository.findByYibanid(yiBanUserInfo.visit_user.userid) != null;
+    }
     public void setUserInfo(YiBanUserInfoTemplate yiBanUserInfo){
         this.userid = yiBanUserInfo.visit_user.userid;
         this.username = yiBanUserInfo.visit_user.username;
@@ -45,8 +58,9 @@ public class JwtMessageTemplate {
         this.usersex = yiBanUserInfo.visit_user.usersex;
         this.ybhead = yiBanUserInfo.visit_user.userhead;
         this.islogin = true;
-        this.expiration = System.currentTimeMillis() + jwtMessageConfig.getExpiresSecond();
-        this.isadmin = commonAdminRepository.findByYibanid(yiBanUserInfo.visit_user.userid) != null;
+        this.expiration = LocalDateTime.now().getSecond() + jwtMessageConfig.getExpiresSecond();
+        this.isadmin = false;
+//        this.isadmin = commonAdminRepository.findByYibanid(yiBanUserInfo.visit_user.userid) != null;
     }
 
     public Integer getUserid() {
@@ -109,23 +123,8 @@ public class JwtMessageTemplate {
         return expiration;
     }
 
-    public void setExpiration(long expiration) {
+    public void setExpiration(Integer expiration) {
         this.expiration = expiration;
     }
 
-    public JwtMessageConfig getJwtMessageConfig() {
-        return jwtMessageConfig;
-    }
-
-    public void setJwtMessageConfig(JwtMessageConfig jwtMessageConfig) {
-        this.jwtMessageConfig = jwtMessageConfig;
-    }
-
-    public CommonAdminRepository getCommonAdminRepository() {
-        return commonAdminRepository;
-    }
-
-    public void setCommonAdminRepository(CommonAdminRepository commonAdminRepository) {
-        this.commonAdminRepository = commonAdminRepository;
-    }
 }
